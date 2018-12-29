@@ -135,6 +135,38 @@ public class TrackWindow implements Runnable {
         return "";
     }
 
+    public Map<Integer, ArrayList<String>> getPrograms() {
+        return programs;
+    }
+
+    public void setPrograms(Map<Integer, ArrayList<String>> programs) {
+        this.programs = programs;
+    }
+
+    public int getMinTime() {
+        return minTime;
+    }
+
+    public void setMinTime(int minTime) {
+        this.minTime = minTime;
+    }
+
+    public int getMinIdle() {
+        return minIdle;
+    }
+
+    public void setMinIdle(int minIdle) {
+        this.minIdle = minIdle;
+    }
+
+    public ArrayList<TimeSegment> getTimeArr() {
+        return timeArr;
+    }
+
+    public boolean isIdle() {
+        return isIdle;
+    }
+
     @Override
     public void run() {
         try {
