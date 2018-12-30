@@ -25,9 +25,9 @@ public class TrackWindow implements Runnable {
         User32.INSTANCE.GetWindowThreadProcessId(hwnd, pid);
         registerProcess("Idle", 999999); // IdleProcess
 
-        lastPid = pid.getValue();
+        //lastPid = pid.getValue();
         isIdle = false;
-        timeArr.add(new TimeSegment(lastPid, System.currentTimeMillis()));
+        timeArr.add(new TimeSegment(pid.getValue(), System.currentTimeMillis()));
     }
 
     public void start() throws Exception {
@@ -37,7 +37,7 @@ public class TrackWindow implements Runnable {
             return;
         } else if (idleTime > minIdle) {
             timeLine(999999);
-            lastPid = 999999;
+            //lastPid = 999999;
             System.out.println("Sleeping");
             isIdle = true;
             return;
@@ -62,7 +62,7 @@ public class TrackWindow implements Runnable {
         // System.out.println("Active window title: " + windowName);
 
         // Registering new position in Timeline and avoiding Sleep process with PID = 0
-        if (lastPid != pid.getValue() && pid.getValue() >= 1) {
+        if (timeArr.get(timeArr.size()-1).getPid() != pid.getValue() && pid.getValue() >= 1) {
             timeLine(pid.getValue());
             displayRaport();
         }
@@ -88,11 +88,13 @@ public class TrackWindow implements Runnable {
     private void timeLine(int pid) {
         long time = System.currentTimeMillis();
         TimeSegment lastSeg = timeArr.get(timeArr.size() - 1);
+        timeArr.remove(timeArr.size() - 1);
         lastSeg.setStopTime(time);
         if (lastSeg.getTime() >= minTime) {
-            timeArr.remove(timeArr.size() - 1);
             timeArr.add(lastSeg);
             timeArr.add(new TimeSegment(pid, time + 1));
+        }else {
+            
         }
     }
 
