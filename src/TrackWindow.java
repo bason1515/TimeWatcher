@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -25,9 +26,9 @@ public class TrackWindow implements Runnable {
         User32.INSTANCE.GetWindowThreadProcessId(hwnd, pid);
         registerProcess("Idle", 999999); // IdleProcess
 
-        lastPid = pid.getValue();
+        //lastPid = pid.getValue();
         isIdle = false;
-        timeArr.add(new TimeSegment(lastPid, System.currentTimeMillis()));
+        timeArr.add(new TimeSegment(pid.getValue(), System.currentTimeMillis()));
     }
 
     public void start() throws Exception {
@@ -37,13 +38,12 @@ public class TrackWindow implements Runnable {
             return;
         } else if (idleTime > minIdle) {
             timeLine(999999);
-            lastPid = 999999;
+            //lastPid = 999999;
             System.out.println("Sleeping");
             isIdle = true;
             return;
         }
         isIdle = false;
-        // System.out.println("Idle for: " + idleTime + "s");
 
         // Geting PID and foreground window name
         char[] buffer = new char[MAX_TITLE_LENGTH * 2];
@@ -62,7 +62,7 @@ public class TrackWindow implements Runnable {
         // System.out.println("Active window title: " + windowName);
 
         // Registering new position in Timeline and avoiding Sleep process with PID = 0
-        if (lastPid != pid.getValue() && pid.getValue() >= 1) {
+        if (timeArr.get(timeArr.size()-1).getPid() != pid.getValue() && pid.getValue() >= 1) {
             timeLine(pid.getValue());
             displayRaport();
         }
@@ -88,9 +88,9 @@ public class TrackWindow implements Runnable {
     private void timeLine(int pid) {
         long time = System.currentTimeMillis();
         TimeSegment lastSeg = timeArr.get(timeArr.size() - 1);
+        timeArr.remove(timeArr.size() - 1);
         lastSeg.setStopTime(time);
-        if (lastSeg.getTime() >= minTime) {
-            timeArr.remove(timeArr.size() - 1);
+        if (lastSeg.getTime() >= minTime || timeArr.size() == 0) {
             timeArr.add(lastSeg);
             timeArr.add(new TimeSegment(pid, time + 1));
         }
@@ -133,6 +133,38 @@ public class TrackWindow implements Runnable {
         }
         scan.close();
         return "";
+    }
+
+    public Map<Integer, ArrayList<String>> getPrograms() {
+        return programs;
+    }
+
+    public void setPrograms(Map<Integer, ArrayList<String>> programs) {
+        this.programs = programs;
+    }
+
+    public int getMinTime() {
+        return minTime;
+    }
+
+    public void setMinTime(int minTime) {
+        this.minTime = minTime;
+    }
+
+    public int getMinIdle() {
+        return minIdle;
+    }
+
+    public void setMinIdle(int minIdle) {
+        this.minIdle = minIdle;
+    }
+
+    public ArrayList<TimeSegment> getTimeArr() {
+        return timeArr;
+    }
+
+    public boolean isIdle() {
+        return isIdle;
     }
 
     @Override
