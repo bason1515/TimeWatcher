@@ -22,6 +22,10 @@ public class TimeSegment {
         return pid;
     }
 
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+    
     public long getStartTime() {
         return startTime;
     }

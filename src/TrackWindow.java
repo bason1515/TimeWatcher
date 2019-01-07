@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -43,7 +44,6 @@ public class TrackWindow implements Runnable {
             return;
         }
         isIdle = false;
-        // System.out.println("Idle for: " + idleTime + "s");
 
         // Geting PID and foreground window name
         char[] buffer = new char[MAX_TITLE_LENGTH * 2];
@@ -90,11 +90,9 @@ public class TrackWindow implements Runnable {
         TimeSegment lastSeg = timeArr.get(timeArr.size() - 1);
         timeArr.remove(timeArr.size() - 1);
         lastSeg.setStopTime(time);
-        if (lastSeg.getTime() >= minTime) {
+        if (lastSeg.getTime() >= minTime || timeArr.size() == 0) {
             timeArr.add(lastSeg);
             timeArr.add(new TimeSegment(pid, time + 1));
-        }else {
-            
         }
     }
 
