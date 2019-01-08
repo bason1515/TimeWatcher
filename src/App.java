@@ -35,7 +35,6 @@ public class App {
     static ArrayList<String> programsFirstName = new ArrayList<String>();
     static ArrayList<TimeSegment> timeArr;
 
-    static JFreeChart chart;
     static TaskSeriesCollection collection = new TaskSeriesCollection();
 
     public static void main(String[] args) {
@@ -46,10 +45,15 @@ public class App {
     }
 
     public static void createGanttChart() {
+        JFrame chartFrame = new JFrame("Time Watcher - Timeline chart");
         IntervalCategoryDataset dataset = collection;
-        chart = ChartFactory.createGanttChart("Timeline", "Programs", "Time", dataset);
+        JFreeChart chart = ChartFactory.createGanttChart("Timeline", "Programs", "Time", dataset);
         chart.getCategoryPlot().setBackgroundPaint(Color.WHITE);
         chart.getCategoryPlot().setRangeGridlinePaint(Color.GRAY);
+        ChartPanel charPanel = new ChartPanel(chart);
+        chartFrame.getContentPane().add(charPanel);
+        chartFrame.setSize(800, 600);
+        chartFrame.setVisible(true);
     }
 
     public static void updateCategoryDataset() {
@@ -103,13 +107,10 @@ public class App {
             @Override
             public void actionPerformed(ActionEvent e) {
                 updateCategoryDataset();
+                createGanttChart();
             }
         });
-        createGanttChart();
         JPanel panel = new JPanel(new BorderLayout());
-        ChartPanel charPanel = new ChartPanel(chart);
-        charPanel.setSize(600, 500);
-        panel.add(charPanel, BorderLayout.CENTER);
         panel.add(updateData, BorderLayout.SOUTH);
         frame.setContentPane(panel);
         frame.addWindowListener(new WindowListener() {
