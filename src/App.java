@@ -25,78 +25,18 @@ import org.jfree.data.category.IntervalCategoryDataset;
 import org.jfree.data.gantt.Task;
 import org.jfree.data.gantt.TaskSeries;
 import org.jfree.data.gantt.TaskSeriesCollection;
+import org.jfree.data.time.SimpleTimePeriod;
 
 public class App {
     static TrackWindow enwin;
     protected static ScheduledExecutorService executor;
     static JFrame frame;
 
-    static Map<Integer, ArrayList<String>> programs;
-    static ArrayList<String> programsFirstName = new ArrayList<String>();
-    static ArrayList<TimeSegment> timeArr;
-
-    static TaskSeriesCollection collection = new TaskSeriesCollection();
-
     public static void main(String[] args) {
         enwin = new TrackWindow();
         executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(enwin, 0, 100, TimeUnit.MILLISECONDS);
         start();
-    }
-
-    public static void createGanttChart() {
-        JFrame chartFrame = new JFrame("Time Watcher - Timeline chart");
-        IntervalCategoryDataset dataset = collection;
-        JFreeChart chart = ChartFactory.createGanttChart("Timeline", "Programs", "Time", dataset);
-        chart.getCategoryPlot().setBackgroundPaint(Color.WHITE);
-        chart.getCategoryPlot().setRangeGridlinePaint(Color.GRAY);
-        ChartPanel charPanel = new ChartPanel(chart);
-        chartFrame.getContentPane().add(charPanel);
-        chartFrame.setSize(800, 600);
-        chartFrame.setVisible(true);
-    }
-
-    public static void updateCategoryDataset() {
-        // Updating all data
-        programs = enwin.getPrograms();
-        timeArr = enwin.getTimeArr();
-        updateFirstName();
-        // Creating series
-        System.out.println("CLEAR");
-        collection.removeAll();
-        collection.getColumnKeys().clear();
-        collection.getRowKeys().clear();
-        // Creating each task series without duplication
-        Map<Integer, TaskSeries> taskSeriesArr = new HashMap<Integer, TaskSeries>();
-        for (TimeSegment seg : timeArr) {
-            TaskSeries series = new TaskSeries(programs.get(seg.getPid()).get(0));
-            taskSeriesArr.put(seg.getPid(), series);
-        }
-        // Adding each segments to specific series
-        System.out.println(taskSeriesArr);
-        for (TimeSegment seg : timeArr) {
-            if (seg.getStopTime() < 1) { // Setting time for current open process
-                seg.setStopTime(System.currentTimeMillis());
-            }
-            TaskSeries series = taskSeriesArr.get(seg.getPid());
-            if (series.isEmpty()) {
-                series.add(new Task("Applications", new Date(seg.getStartTime()), new Date(seg.getStopTime())));
-                Task task = (Task) series.getTasks().get(0);
-                task.addSubtask(new Task("Applications", new Date(seg.getStartTime()), new Date(seg.getStopTime())));
-                System.out.println("First Task " + series.getTasks().get(0));
-            } else {
-                System.out.println("SubTask");
-                Task task = (Task) series.getTasks().get(0);
-                task.addSubtask(new Task("Applications", new Date(seg.getStartTime()), new Date(seg.getStopTime())));
-                series.removeAll();
-                series.add(task);
-            }
-            taskSeriesArr.put(seg.getPid(), series);
-        }
-        // Adding all task series to task collection
-        for (TaskSeries series : taskSeriesArr.values()) {
-            collection.add(series);
-        }
     }
 
     public static void start() {
@@ -106,8 +46,7 @@ public class App {
         updateData.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                updateCategoryDataset();
-                createGanttChart();
+                new TimelineChart("Timeline", enwin.timeline);
             }
         });
         JPanel panel = new JPanel(new BorderLayout());
@@ -146,14 +85,5 @@ public class App {
         });
         frame.setSize(800, 600);
         frame.setVisible(true);
-    }
-
-    public static void updateFirstName() {
-        ArrayList<String> processName = new ArrayList<String>();
-        for (ArrayList<String> arr : programs.values()) { // Collecting all first known names of process
-            processName.add(arr.get(0));
-            System.out.println("Category: " + arr.get(0));
-        }
-        programsFirstName = processName;
     }
 }

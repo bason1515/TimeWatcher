@@ -1,25 +1,21 @@
 
 public class TimeSegment {
-    private int pid;
     private long startTime;
     private long stopTime;
 
-    public TimeSegment(int pid, long startTime) {
-        this.pid = pid;
+    public TimeSegment(long startTime) {
         this.startTime = startTime;
         stopTime = 0;
     }
 
     public long getStopTime() {
+        if(stopTime == 0)
+            return System.currentTimeMillis();
         return stopTime;
     }
 
     public void setStopTime(long stopTime) {
         this.stopTime = stopTime;
-    }
-
-    public int getPid() {
-        return pid;
     }
 
     public void setStartTime(long startTime) {
@@ -34,5 +30,10 @@ public class TimeSegment {
         if (stopTime != 0)
             return stopTime - startTime;
         return 0;
+    }
+    
+    @Override
+    public String toString() {
+        return "" + getTime();
     }
 }
