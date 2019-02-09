@@ -18,15 +18,14 @@ public class TrackWindow implements Runnable {
     HashMap<String, String> customProcessNames;
 
     // Setting up first process in timeline
-    public TrackWindow() {
+    public TrackWindow(HashMap<String, String> customProcessNames) {
         String windowName = getWindowName();
         int pid = getProcessPid();
         String processName = getProcessExe(pid);
         timeline = new Timeline(processName);
         ignoreList = new ArrayList<String>();
         ignoreList.add("System");
-        customProcessNames = new HashMap<String, String>();
-        customProcessNames.put("explorer.exe", "Pulpit");
+        this.customProcessNames = customProcessNames;
     }
 
     public String getWindowName() {
