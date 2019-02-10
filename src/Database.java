@@ -53,7 +53,7 @@ public class Database {
     }
 
     private static Connection getConnection() throws SQLException {
-        String url = "jdbc:firebirdsql:localhost/3050:C:\\Users\\bason\\eclipse-workspace\\TimeWatcher\\src\\TIMEWATCHERDB.FDB";
+        String url = "jdbc:firebirdsql:localhost/3050:C:\\Users\\bason\\eclipse-workspace\\TimeWatcher\\src\\TIMEWATCHERDB.FDB?encoding=UTF8";
         String username = "sysdba";
         String password = "masterkey";
         Connection conn = DriverManager.getConnection(url, username, password);

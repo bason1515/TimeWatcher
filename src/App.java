@@ -3,6 +3,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -18,10 +19,24 @@ public class App {
     static Database db = new Database();
 
     public static void main(String[] args) {
-        enwin = new TrackWindow(db.getCustomProcessNames());
+        enwin = new TrackWindow();
         executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(enwin, 0, 100, TimeUnit.MILLISECONDS);
         start();
+    }
+
+    private static Timeline applyCustomNames(Timeline timeline) {
+        HashMap<String, ProcessTimeSegments> processTimeline = new HashMap<>();
+        HashMap<String, String> customProcessNames = db.getCustomProcessNames();
+        for (ProcessTimeSegments p : timeline.getTimeline()) {
+            if (customProcessNames.containsKey(p.getProcessName())) {
+                p.setProcessName(customProcessNames.get(p.getProcessName()));
+                processTimeline.put(p.getProcessName(), p);
+            } else
+                processTimeline.put(p.getProcessName(), p);
+        }
+        timeline.setTimeline(processTimeline);
+        return timeline;
     }
 
     public static void start() {
@@ -31,7 +46,7 @@ public class App {
         updateData.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new TimelineChart("Timeline", enwin.timeline);
+                new TimelineChart("Timeline", applyCustomNames(enwin.timeline));
             }
         });
         JPanel panel = new JPanel(new BorderLayout());

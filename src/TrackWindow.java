@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Scanner;
 
 import com.sun.jna.Native;
@@ -15,17 +14,15 @@ public class TrackWindow implements Runnable {
 
     Timeline timeline;
     ArrayList<String> ignoreList;
-    HashMap<String, String> customProcessNames;
 
     // Setting up first process in timeline
-    public TrackWindow(HashMap<String, String> customProcessNames) {
+    public TrackWindow() {
         String windowName = getWindowName();
         int pid = getProcessPid();
         String processName = getProcessExe(pid);
         timeline = new Timeline(processName);
         ignoreList = new ArrayList<String>();
         ignoreList.add("System");
-        this.customProcessNames = customProcessNames;
     }
 
     public String getWindowName() {
@@ -52,8 +49,6 @@ public class TrackWindow implements Runnable {
         String windowName = getWindowName();
         int pid = getProcessPid();
         String processName = getProcessExe(pid);
-        if (customProcessNames.containsKey(processName))
-            processName = customProcessNames.get(processName);
         // -----------------
         System.out.println(windowName + " " + processName + " " + pid);
         System.out.println(isChangeProcess(processName) + " " + timeline.getCurrentProcess());
