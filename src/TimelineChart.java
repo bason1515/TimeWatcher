@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 
 import javax.swing.JFrame;
 
@@ -73,10 +74,10 @@ public class TimelineChart extends JFrame {
 
     private TaskSeriesCollection createDataset() {
         final TaskSeries s1 = new TaskSeries("Applications");
-        ArrayList<ProcessTimeSegments> processesTimeline = timeline.getTimeline();
+        Iterator<ProcessTimeSegments> iterator = timeline.getTimeline().values().iterator();
         // Preparing main task with oldest start time and latest stop time
-        Task[] tasks = new Task[processesTimeline.size()];
-        for (ProcessTimeSegments p : processesTimeline) {
+        while (iterator.hasNext()) {
+            ProcessTimeSegments p = iterator.next();
             final Task task = new Task(p.getProcessName(), new Date(p.getProcessTimeline().get(0).getStartTime()),
                     new Date(p.getLastInTimeline().getStopTime()));
 

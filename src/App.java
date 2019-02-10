@@ -4,54 +4,62 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class App {
-    static TrackWindow enwin;
-    protected static ScheduledExecutorService executor;
-    static JFrame frame;
-    static Database db = new Database();
+    TrackWindow enwin;
+    protected ScheduledExecutorService executor;
+    JFrame frame;
+    JComboBox<String> cBProcess;
+    Database db = new Database();
 
-    static int minTimeToIdle = 15;
+    int minTimeToIdle = 15;
 
-    public static void main(String[] args) {
-        enwin = new TrackWindow(db.getIgnoreList(), minTimeToIdle);
-        executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(enwin, 0, 100, TimeUnit.MILLISECONDS);
-        start();
-    }
-
-    private static Timeline applyCustomNames(Timeline timeline) {
-        HashMap<String, ProcessTimeSegments> processTimeline = new HashMap<>();
+    private Timeline applyCustomNames(Timeline timeline) {
         HashMap<String, String> customProcessNames = db.getCustomProcessNames();
-        for (ProcessTimeSegments p : timeline.getTimeline()) {
-            if (customProcessNames.containsKey(p.getProcessName())) {
-                p.setProcessName(customProcessNames.get(p.getProcessName()));
-                processTimeline.put(p.getProcessName(), p);
-            } else
-                processTimeline.put(p.getProcessName(), p);
+        Iterator<ProcessTimeSegments> iterator = timeline.getTimeline().values().iterator();
+        while (iterator.hasNext()) {
+            ProcessTimeSegments p = iterator.next();
+            if (customProcessNames.containsKey(p.getProcessName()))
+                timeline.setNewName(p.processName, customProcessNames.get(p.getProcessName()));
         }
-        timeline.setTimeline(processTimeline);
         return timeline;
     }
 
-    public static void start() {
+    public void updateCBProcess() {
+        cBProcess.removeAllItems();
+        Iterator<String> iteration = enwin.getTimeline().getTimeline().keySet().iterator();
+        while (iteration.hasNext()) {
+            cBProcess.addItem(iteration.next());
+        }
+    }
+
+    public void start() {
+        enwin = new TrackWindow(db.getIgnoreList(), minTimeToIdle);
+        executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(enwin, 0, 100, TimeUnit.MILLISECONDS);
         frame = new JFrame("Time Watcher");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        cBProcess = new JComboBox<String>();
         JButton updateData = new JButton("Update Data");
         updateData.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new TimelineChart("Timeline", applyCustomNames(enwin.timeline));
+                Timeline copyTimeline = enwin.getTimeline().clone();
+                new TimelineChart("Timeline", applyCustomNames(copyTimeline));
+                updateCBProcess();
             }
         });
         JPanel panel = new JPanel(new BorderLayout());
+        panel.add(cBProcess, BorderLayout.NORTH);
         panel.add(updateData, BorderLayout.SOUTH);
         frame.setContentPane(panel);
         frame.addWindowListener(new WindowListener() {
