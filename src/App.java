@@ -19,7 +19,7 @@ public class App {
     static Database db = new Database();
 
     public static void main(String[] args) {
-        enwin = new TrackWindow();
+        enwin = new TrackWindow(db.getIgnoreList());
         executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(enwin, 0, 100, TimeUnit.MILLISECONDS);
         start();

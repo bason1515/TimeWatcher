@@ -16,13 +16,12 @@ public class TrackWindow implements Runnable {
     ArrayList<String> ignoreList;
 
     // Setting up first process in timeline
-    public TrackWindow() {
+    public TrackWindow(ArrayList<String> ignoreList) {
         String windowName = getWindowName();
         int pid = getProcessPid();
         String processName = getProcessExe(pid);
         timeline = new Timeline(processName);
-        ignoreList = new ArrayList<String>();
-        ignoreList.add("System");
+        this.ignoreList = ignoreList;
     }
 
     public String getWindowName() {
@@ -100,5 +99,13 @@ public class TrackWindow implements Runnable {
             e.printStackTrace();
         }
 
+    }
+
+    public ArrayList<String> getIgnoreList() {
+        return ignoreList;
+    }
+
+    public void setIgnoreList(ArrayList<String> ignoreList) {
+        this.ignoreList = ignoreList;
     }
 }
