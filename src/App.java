@@ -18,8 +18,10 @@ public class App {
     static JFrame frame;
     static Database db = new Database();
 
+    static int minTimeToIdle = 15;
+
     public static void main(String[] args) {
-        enwin = new TrackWindow(db.getIgnoreList());
+        enwin = new TrackWindow(db.getIgnoreList(), minTimeToIdle);
         executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(enwin, 0, 100, TimeUnit.MILLISECONDS);
         start();

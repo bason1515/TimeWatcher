@@ -9,7 +9,7 @@ public class TimeSegment {
     }
 
     public long getStopTime() {
-        if(stopTime == 0)
+        if (stopTime == 0)
             return System.currentTimeMillis();
         return stopTime;
     }
@@ -21,7 +21,7 @@ public class TimeSegment {
     public void setStartTime(long startTime) {
         this.startTime = startTime;
     }
-    
+
     public long getStartTime() {
         return startTime;
     }
@@ -29,9 +29,9 @@ public class TimeSegment {
     public long getTime() {
         if (stopTime != 0)
             return stopTime - startTime;
-        return 0;
+        return System.currentTimeMillis() - startTime;
     }
-    
+
     @Override
     public String toString() {
         return "" + getTime();

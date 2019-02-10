@@ -3,6 +3,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class Timeline {
+    String lastProcessName;
     String currentProcessName;
     HashMap<String, ProcessTimeSegments> timeline;
 
@@ -17,6 +18,10 @@ public class Timeline {
 
     public ProcessTimeSegments getCurrentProcess() {
         return timeline.get(currentProcessName);
+    }
+
+    public ProcessTimeSegments getLastProcess() {
+        return timeline.get(lastProcessName);
     }
 
     public boolean containsProcess(String processName) {
@@ -39,9 +44,10 @@ public class Timeline {
         }
         newProcess.addTimeSegment(new TimeSegment(System.currentTimeMillis()));
         timeline.put(processName, newProcess);
+        lastProcessName = currentProcessName;
         currentProcessName = processName;
     }
-    
+
     public void displayTimeline() {
         System.out.println(timeline);
     }
@@ -49,7 +55,7 @@ public class Timeline {
     public ArrayList<ProcessTimeSegments> getTimeline() {
         Iterator<ProcessTimeSegments> iterator = timeline.values().iterator();
         ArrayList<ProcessTimeSegments> arrayTimeline = new ArrayList<ProcessTimeSegments>();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             arrayTimeline.add(iterator.next());
         }
         System.out.println(arrayTimeline);

@@ -15,13 +15,16 @@ public class TrackWindow implements Runnable {
     Timeline timeline;
     ArrayList<String> ignoreList;
 
+    private int minTimeToIdle;
+
     // Setting up first process in timeline
-    public TrackWindow(ArrayList<String> ignoreList) {
+    public TrackWindow(ArrayList<String> ignoreList, int minTimeToIdle) {
         String windowName = getWindowName();
         int pid = getProcessPid();
         String processName = getProcessExe(pid);
         timeline = new Timeline(processName);
         this.ignoreList = ignoreList;
+        this.minTimeToIdle = minTimeToIdle;
     }
 
     public String getWindowName() {
@@ -52,6 +55,9 @@ public class TrackWindow implements Runnable {
         System.out.println(windowName + " " + processName + " " + pid);
         System.out.println(isChangeProcess(processName) + " " + timeline.getCurrentProcess());
         // -----------------
+        if(getIdleTimeMillis()/1000 > minTimeToIdle) {
+            processName = "Idle";
+        }
         if (!isChangeProcess(processName))
             return;
         if (ignoreList.contains(processName))
@@ -107,5 +113,13 @@ public class TrackWindow implements Runnable {
 
     public void setIgnoreList(ArrayList<String> ignoreList) {
         this.ignoreList = ignoreList;
+    }
+
+    public int getMinTimeToIdle() {
+        return minTimeToIdle;
+    }
+
+    public void setMinTimeToIdle(int minTimeToIdle) {
+        this.minTimeToIdle = minTimeToIdle;
     }
 }
