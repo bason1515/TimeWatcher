@@ -1,7 +1,6 @@
 import java.util.ArrayList;
-import java.util.Objects;
 
-public class ProcessTimeSegments {
+public class ProcessTimeSegments implements Cloneable{
     String processName;
     ArrayList<String> knownAs;
     ArrayList<TimeSegment> processTimeline;
@@ -74,5 +73,20 @@ public class ProcessTimeSegments {
 
     public void setProcessTimeline(ArrayList<TimeSegment> processTimeline) {
         this.processTimeline = processTimeline;
+    }
+
+    protected ProcessTimeSegments clone() {
+        ProcessTimeSegments clonProcess = null;
+        try {
+            clonProcess = (ProcessTimeSegments) super.clone();
+            ArrayList<TimeSegment> clonProcesTimeline = new ArrayList<>();
+            for(TimeSegment t : processTimeline) {
+                clonProcesTimeline.add(t.clone());
+            }
+            clonProcess.processTimeline = clonProcesTimeline;
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return (ProcessTimeSegments) clonProcess;
     }
 }

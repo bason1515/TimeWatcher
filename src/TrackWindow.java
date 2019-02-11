@@ -1,13 +1,8 @@
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Scanner;
 
-import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.User32;
@@ -19,18 +14,17 @@ public class TrackWindow implements Runnable {
 
     Timeline timeline;
     ArrayList<String> ignoreList;
-    HashMap<String, String> customProcessNames;
+
+    private int minTimeToIdle;
 
     // Setting up first process in timeline
-    public TrackWindow() {
+    public TrackWindow(ArrayList<String> ignoreList, int minTimeToIdle) {
         String windowName = getWindowName();
         int pid = getProcessPid();
         String processName = getProcessExe(pid);
         timeline = new Timeline(processName);
-        ignoreList = new ArrayList<String>();
-        ignoreList.add("System");
-        customProcessNames = new HashMap<String, String>();
-        customProcessNames.put("explorer.exe", "Pulpit");
+        this.ignoreList = ignoreList;
+        this.minTimeToIdle = minTimeToIdle;
     }
 
     public String getWindowName() {
@@ -57,12 +51,12 @@ public class TrackWindow implements Runnable {
         String windowName = getWindowName();
         int pid = getProcessPid();
         String processName = getProcessExe(pid);
-        if (customProcessNames.containsKey(processName))
-            processName = customProcessNames.get(processName);
         // -----------------
-        System.out.println(windowName + " " + processName + " " + pid);
-        System.out.println(isChangeProcess(processName) + " " + timeline.getCurrentProcess());
+        //System.out.println(windowName + " " + processName + " " + pid);
+        //System.out.println(isChangeProcess(processName) + " " + timeline.getCurrentProcess());
         // -----------------
+        if(getIdleTimeMillis()/1000 > minTimeToIdle)
+            processName = "Idle";
         if (!isChangeProcess(processName))
             return;
         if (ignoreList.contains(processName))
@@ -110,5 +104,29 @@ public class TrackWindow implements Runnable {
             e.printStackTrace();
         }
 
+    }
+
+    public ArrayList<String> getIgnoreList() {
+        return ignoreList;
+    }
+
+    public void setIgnoreList(ArrayList<String> ignoreList) {
+        this.ignoreList = ignoreList;
+    }
+
+    public int getMinTimeToIdle() {
+        return minTimeToIdle;
+    }
+
+    public void setMinTimeToIdle(int minTimeToIdle) {
+        this.minTimeToIdle = minTimeToIdle;
+    }
+
+    public Timeline getTimeline() {
+        return timeline;
+    }
+
+    public void setTimeline(Timeline timeline) {
+        this.timeline = timeline;
     }
 }
