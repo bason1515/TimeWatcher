@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -28,6 +29,7 @@ public class App {
     Database db = new Database();
 
     int minTimeToIdle = 15;
+    int minTimeInWindow = 10;
 
     private Timeline applyCustomNames(Timeline timeline) {
         HashMap<String, String> customProcessNames = db.getCustomProcessNames();
@@ -36,7 +38,6 @@ public class App {
         while (iterator.hasNext()) {
             ProcessTimeSegments p = iterator.next();
             if (customProcessNames.containsKey(p.getProcessName())) {
-                System.out.println("if: " + p.getProcessName() + " " + customProcessNames.get(p.getProcessName()));
                 p.setProcessName(customProcessNames.get(p.getProcessName()));
             }
             customProcTimeline.put(p.getProcessName(), p);
@@ -63,6 +64,10 @@ public class App {
         frame = new JFrame("Time Watcher");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JTextField customNameField = new JTextField();
+        JTextField idleTimeField = new JTextField();
+        JTextField windowTimeField = new JTextField();
+        JLabel idleTimeLable = new JLabel("Min time to idle: " + minTimeToIdle + "s");
+        JLabel windowTimeLable = new JLabel("Min time in window: " + minTimeInWindow + "s");
         JButton updateData = new JButton("Update Data");
         JButton ignoreButton = new JButton("Ignore");
         cBProcess = new JComboBox<String>();
@@ -70,7 +75,7 @@ public class App {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 String item = (String) e.getItem();
-                HashMap<String, String> customNames= db.getCustomProcessNames();
+                HashMap<String, String> customNames = db.getCustomProcessNames();
                 if (db.getIgnoreList().contains(item))
                     ignoreButton.setText("Unignore");
                 else
@@ -103,6 +108,54 @@ public class App {
                 }
             }
         });
+        idleTimeField.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    try {
+                        minTimeToIdle = Integer.parseInt(idleTimeField.getText());
+                        idleTimeLable.setText("Min time to idle: " + minTimeToIdle + "s");
+                    } catch (NumberFormatException ex) {
+                        idleTimeField.setText("Please enter a number");
+                        return;
+                    }
+                    enwin.setMinTimeToIdle(minTimeToIdle);
+                }
+            }
+        });
+        windowTimeField.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    try {
+                        minTimeInWindow = Integer.parseInt(windowTimeField.getText());
+                        windowTimeLable.setText("Min time in window: " + minTimeInWindow + "s");
+                    } catch (NumberFormatException ex) {
+                        windowTimeField.setText("Please enter a number");
+                        return;
+                    }
+                    enwin.getTimeline().setMinTimeInWindow(minTimeInWindow);
+                }
+            }
+        });
         ignoreButton.addActionListener(new ActionListener() {
 
             @Override
@@ -120,6 +173,7 @@ public class App {
                 enwin.setIgnoreList(db.getIgnoreList());
             }
         });
+
         updateData.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -135,6 +189,11 @@ public class App {
         gridPanel.add(cBProcess);
         gridPanel.add(customNameField);
         gridPanel.add(ignoreButton);
+        gridPanel.add(new JLabel());
+        gridPanel.add(idleTimeLable);
+        gridPanel.add(idleTimeField);
+        gridPanel.add(windowTimeLable);
+        gridPanel.add(windowTimeField);
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(gridPanel, BorderLayout.NORTH);
         panel.add(updateData, BorderLayout.SOUTH);

@@ -1,18 +1,19 @@
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class Timeline implements Cloneable{
+public class Timeline implements Cloneable {
     private String lastProcessName;
     private String currentProcessName;
     private HashMap<String, ProcessTimeSegments> timeline;
+    int minTimeInWindow;
 
-    public Timeline(String processName) {
+    public Timeline(String processName, int minTimeInWindow) {
         ProcessTimeSegments process = new ProcessTimeSegments(processName);
         process.addTimeSegment(new TimeSegment(System.currentTimeMillis()));
-
         timeline = new HashMap<String, ProcessTimeSegments>();
         timeline.put(processName, process);
         currentProcessName = processName;
+        this.minTimeInWindow = minTimeInWindow;
     }
 
     public ProcessTimeSegments getCurrentProcess() {
@@ -28,7 +29,15 @@ public class Timeline implements Cloneable{
     }
 
     public void add(String processName) {
-        if (processName == currentProcessName)
+        // prevent remembering short window switches
+        if (getCurrentProcess().getLastInTimeline().getTime() < minTimeInWindow * 1000) {
+            getCurrentProcess().removeTimeSegment(getCurrentProcess().getProcessTimeline().size() - 1);
+            if (getCurrentProcess().getProcessTimeline().isEmpty())
+                timeline.remove(currentProcessName);
+            currentProcessName = lastProcessName;
+            timeline.get(currentProcessName).getLastInTimeline().setStopTime(0);
+        }
+        if (processName.equals(currentProcessName))
             return;
         // Finising time segment of current process
         ProcessTimeSegments currentProcess = timeline.get(currentProcessName);
@@ -74,7 +83,7 @@ public class Timeline implements Cloneable{
             clonTimeline = (Timeline) super.clone();
             HashMap<String, ProcessTimeSegments> clonProcesTimeline = new HashMap<>();
             Iterator<ProcessTimeSegments> iterator = clonTimeline.getTimeline().values().iterator();
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 ProcessTimeSegments p = iterator.next();
                 clonProcesTimeline.put(p.getProcessName(), p.clone());
             }
@@ -83,5 +92,13 @@ public class Timeline implements Cloneable{
             e.printStackTrace();
         }
         return clonTimeline;
+    }
+
+    public int getMinTimeInWindow() {
+        return minTimeInWindow;
+    }
+
+    public void setMinTimeInWindow(int minTimeInWindow) {
+        this.minTimeInWindow = minTimeInWindow;
     }
 }
