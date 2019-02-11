@@ -1,6 +1,11 @@
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.HashMap;
@@ -13,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 public class App {
     TrackWindow enwin;
@@ -45,6 +51,9 @@ public class App {
         while (iteration.hasNext()) {
             cBProcess.addItem(iteration.next());
         }
+        for (String ignore : db.getIgnoreList()) {
+            cBProcess.addItem(ignore);
+        }
     }
 
     public void start() {
@@ -53,8 +62,64 @@ public class App {
         executor.scheduleAtFixedRate(enwin, 0, 100, TimeUnit.MILLISECONDS);
         frame = new JFrame("Time Watcher");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        cBProcess = new JComboBox<String>();
+        JTextField customNameField = new JTextField();
         JButton updateData = new JButton("Update Data");
+        JButton ignoreButton = new JButton("Ignore");
+        cBProcess = new JComboBox<String>();
+        cBProcess.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                String item = (String) e.getItem();
+                HashMap<String, String> customNames= db.getCustomProcessNames();
+                if (db.getIgnoreList().contains(item))
+                    ignoreButton.setText("Unignore");
+                else
+                    ignoreButton.setText("Ignore");
+                if (customNames.containsKey(item))
+                    item = customNames.get(item);
+                customNameField.setText(item);
+            }
+        });
+        customNameField.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (cBProcess.getItemCount() == 0 || customNameField.getText().trim().equals("")) {
+                    return;
+                }
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    String procesExe = (String) cBProcess.getSelectedItem();
+                    db.deleteCustomProcessNames(procesExe);
+                    db.addCustomProcessNames(procesExe, customNameField.getText());
+                    customNameField.setText("-SAVED-");
+                }
+            }
+        });
+        ignoreButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (cBProcess.getItemCount() == 0)
+                    return;
+                String item = (String) cBProcess.getSelectedItem();
+                if (ignoreButton.getText().equals("Ignore")) {
+                    db.addIgnore(item);
+                    ignoreButton.setText("Unignore");
+                } else {
+                    db.deleteIgnore(item);
+                    ignoreButton.setText("Ignore");
+                }
+                enwin.setIgnoreList(db.getIgnoreList());
+            }
+        });
         updateData.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -63,8 +128,15 @@ public class App {
                 updateCBProcess();
             }
         });
+        GridLayout grid = new GridLayout(0, 2);
+        grid.setVgap(5);
+        grid.setHgap(3);
+        JPanel gridPanel = new JPanel(grid);
+        gridPanel.add(cBProcess);
+        gridPanel.add(customNameField);
+        gridPanel.add(ignoreButton);
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(cBProcess, BorderLayout.NORTH);
+        panel.add(gridPanel, BorderLayout.NORTH);
         panel.add(updateData, BorderLayout.SOUTH);
         frame.setContentPane(panel);
         frame.addWindowListener(new WindowListener() {

@@ -49,6 +49,19 @@ public class Database {
         }
     }
 
+    public void deleteCustomProcessNames(String processExe) {
+        processExe = wrap(processExe);
+        try {
+            Connection conn = getConnection();
+            Statement stm = conn.createStatement();
+            stm.executeUpdate("DELETE FROM PROCESS WHERE PROCESS.PROCESS_EXE = " + processExe + ";");
+            conn.close();
+        } catch (SQLException e) {
+            System.err.println("Connection Fail");
+            e.printStackTrace();
+        }
+    }
+
     public ArrayList<String> getIgnoreList() {
         ArrayList<String> ignoreList = new ArrayList<>();
         try {
@@ -72,6 +85,19 @@ public class Database {
             Connection conn = getConnection();
             Statement stm = conn.createStatement();
             stm.executeUpdate("INSERT INTO IGNORE (PROCESS_EXE) VALUES (" + processExe + ");");
+            conn.close();
+        } catch (SQLException e) {
+            System.err.println("Connection Fail");
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteIgnore(String processExe) {
+        processExe = wrap(processExe);
+        try {
+            Connection conn = getConnection();
+            Statement stm = conn.createStatement();
+            stm.executeUpdate("DELETE FROM IGNORE WHERE IGNORE.PROCESS_EXE = " + processExe + ";");
             conn.close();
         } catch (SQLException e) {
             System.err.println("Connection Fail");
