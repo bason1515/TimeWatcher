@@ -49,11 +49,19 @@ public class App {
     public void updateCBProcess() {
         cBProcess.removeAllItems();
         Iterator<String> iteration = enwin.getTimeline().getTimeline().keySet().iterator();
+        HashMap<String, String> customNames = db.getCustomProcessNames();
         while (iteration.hasNext()) {
-            cBProcess.addItem(iteration.next());
+            String porcessExe = iteration.next();
+            if (customNames.containsKey(porcessExe))
+                cBProcess.addItem(porcessExe + " - " + customNames.get(porcessExe));
+            else
+                cBProcess.addItem(porcessExe);
         }
         for (String ignore : db.getIgnoreList()) {
-            cBProcess.addItem(ignore);
+            if (customNames.containsKey(ignore))
+                cBProcess.addItem(ignore + " - " + customNames.get(ignore));
+            else
+                cBProcess.addItem(ignore);
         }
     }
 
@@ -63,18 +71,19 @@ public class App {
         executor.scheduleAtFixedRate(enwin, 0, 100, TimeUnit.MILLISECONDS);
         frame = new JFrame("Time Watcher");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JTextField customNameField = new JTextField();
+        JTextField customNameField = new JTextField("Please update date to get processes");
         JTextField idleTimeField = new JTextField();
         JTextField windowTimeField = new JTextField();
         JLabel idleTimeLable = new JLabel("Min time to idle: " + minTimeToIdle + "s");
         JLabel windowTimeLable = new JLabel("Min time in window: " + minTimeInWindow + "s");
-        JButton updateData = new JButton("Update Data");
+        JButton updateData = new JButton("Update Data/Generate timeline");
         JButton ignoreButton = new JButton("Ignore");
         cBProcess = new JComboBox<String>();
         cBProcess.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 String item = (String) e.getItem();
+                item = item.split(" - ")[0];
                 HashMap<String, String> customNames = db.getCustomProcessNames();
                 if (db.getIgnoreList().contains(item))
                     ignoreButton.setText("Unignore");
