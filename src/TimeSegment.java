@@ -1,5 +1,5 @@
 
-public class TimeSegment {
+public class TimeSegment implements Cloneable{
     private long startTime;
     private long stopTime;
 
@@ -35,5 +35,15 @@ public class TimeSegment {
     @Override
     public String toString() {
         return "" + getTime();
+    }
+    
+    protected TimeSegment clone() {
+        TimeSegment clonTime = null;
+        try {
+            clonTime = (TimeSegment) super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return (TimeSegment) clonTime;
     }
 }

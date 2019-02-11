@@ -26,11 +26,16 @@ public class App {
     private Timeline applyCustomNames(Timeline timeline) {
         HashMap<String, String> customProcessNames = db.getCustomProcessNames();
         Iterator<ProcessTimeSegments> iterator = timeline.getTimeline().values().iterator();
+        HashMap<String, ProcessTimeSegments> customProcTimeline = new HashMap<>();
         while (iterator.hasNext()) {
             ProcessTimeSegments p = iterator.next();
-            if (customProcessNames.containsKey(p.getProcessName()))
-                timeline.setNewName(p.processName, customProcessNames.get(p.getProcessName()));
+            if (customProcessNames.containsKey(p.getProcessName())) {
+                System.out.println("if: " + p.getProcessName() + " " + customProcessNames.get(p.getProcessName()));
+                p.setProcessName(customProcessNames.get(p.getProcessName()));
+            }
+            customProcTimeline.put(p.getProcessName(), p);
         }
+        timeline.setTimeline(customProcTimeline);
         return timeline;
     }
 

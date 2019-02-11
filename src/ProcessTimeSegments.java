@@ -79,6 +79,11 @@ public class ProcessTimeSegments implements Cloneable{
         ProcessTimeSegments clonProcess = null;
         try {
             clonProcess = (ProcessTimeSegments) super.clone();
+            ArrayList<TimeSegment> clonProcesTimeline = new ArrayList<>();
+            for(TimeSegment t : processTimeline) {
+                clonProcesTimeline.add(t.clone());
+            }
+            clonProcess.processTimeline = clonProcesTimeline;
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
