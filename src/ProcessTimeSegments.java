@@ -19,7 +19,8 @@ public class ProcessTimeSegments implements Cloneable {
     }
 
     public void addKnowAs(String windowName) {
-        knownAs.add(windowName);
+        if (!knownAs.contains(windowName))
+            knownAs.add(windowName);
     }
 
     public void removeTimeSegment(int index) {

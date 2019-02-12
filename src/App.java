@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
@@ -29,7 +30,7 @@ public class App {
     Database db = new Database();
 
     int minTimeToIdle = 15;
-    int minTimeInWindow = 10;
+    int minTimeInWindow = 0;
 
     private Timeline applyCustomNames(Timeline timeline) {
         HashMap<String, String> customProcessNames = db.getCustomProcessNames();
@@ -46,13 +47,35 @@ public class App {
         return timeline;
     }
 
+    protected void updateDB() {
+        HashMap<String, String> dbProcess = db.getCustomProcessNames();
+        Iterator<String> iterator = enwin.getTimeline().getTimeline().keySet().iterator();
+        while (iterator.hasNext()) {
+            String p = iterator.next();
+            if (!dbProcess.containsKey(p)) {
+                db.addProcess(p);
+            }
+            updateDBKnownAs(p);
+        }
+    }
+
+    private void updateDBKnownAs(String p) {
+        ArrayList<String> dbKnownAs = db.getKnownAs(p);
+        Iterator<String> iterator = enwin.timeline.getTimeline().get(p).getKnownAs().iterator();
+        while(iterator.hasNext()) {
+            String name = iterator.next();
+            if(!dbKnownAs.contains(name))
+                db.addKnownAs(p, name);
+        }
+    }
+
     public void updateCBProcess() {
         cBProcess.removeAllItems();
         Iterator<String> iteration = enwin.getTimeline().getTimeline().keySet().iterator();
         HashMap<String, String> customNames = db.getCustomProcessNames();
         while (iteration.hasNext()) {
             String porcessExe = iteration.next();
-            if (customNames.containsKey(porcessExe))
+            if (customNames.containsKey(porcessExe) && !customNames.get(porcessExe).equals("null"))
                 cBProcess.addItem(porcessExe + " - " + customNames.get(porcessExe));
             else
                 cBProcess.addItem(porcessExe);
@@ -188,6 +211,7 @@ public class App {
             public void actionPerformed(ActionEvent e) {
                 Timeline copyTimeline = enwin.getTimeline().clone();
                 new TimelineChart("Timeline", applyCustomNames(copyTimeline));
+                updateDB();
                 updateCBProcess();
             }
         });

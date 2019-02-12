@@ -22,7 +22,7 @@ public class Database {
         try {
             Connection conn = getConnection();
             Statement stm = conn.createStatement();
-            ResultSet res = stm.executeQuery("SELECT * FROM PROCESS");
+            ResultSet res = stm.executeQuery("SELECT * FROM PROCESS WHERE PROCESS.PROCESS_NAME IS NOT NULL ");
             while (res.next()) {
                 customProcessNames.put(res.getString("PROCESS_EXE"), res.getString("PROCESS_NAME"));
             }
@@ -42,6 +42,68 @@ public class Database {
             Statement stm = conn.createStatement();
             stm.executeUpdate("INSERT INTO PROCESS (PROCESS_EXE, PROCESS_NAME) VALUES (" + processExe + ", "
                     + processName + ");");
+            conn.close();
+        } catch (SQLException e) {
+            System.err.println("Connection Fail");
+            e.printStackTrace();
+        }
+    }
+
+    public void addKnownAs(String processExe, String name) {
+        name = wrap(name);
+        String id = wrap(getIdOfProcess(processExe));
+        try {
+            Connection conn = getConnection();
+            Statement stm = conn.createStatement();
+            stm.executeUpdate("INSERT INTO KNOWNAS (NAME, PROCESS_ID) VALUES (" + name + ", " + id + ");");
+            conn.close();
+        } catch (SQLException e) {
+            System.err.println("Connection Fail");
+            e.printStackTrace();
+        }
+    }
+
+    public ArrayList<String> getKnownAs(String processExe) {
+        String id = wrap(getIdOfProcess(processExe));
+        ArrayList<String> names = new ArrayList<>();
+        try {
+            Connection conn = getConnection();
+            Statement stm = conn.createStatement();
+            ResultSet res = stm.executeQuery("SELECT NAME FROM KNOWNAS WHERE KNOWNAS.PROCESS_ID = " + id + ";");
+            while (res.next()) {
+                names.add(res.getString("NAME"));
+            }
+            conn.close();
+        } catch (SQLException e) {
+            System.err.println("Connection Fail");
+            e.printStackTrace();
+        }
+        return names;
+    }
+
+    private String getIdOfProcess(String processExe) {
+        processExe = wrap(processExe);
+        String id = null;
+        try {
+            Connection conn = getConnection();
+            Statement stm = conn.createStatement();
+            ResultSet res = stm.executeQuery("SELECT ID FROM PROCESS WHERE PROCESS.PROCESS_EXE = " + processExe + ";");
+            res.next();
+            id = res.getString("ID");
+            conn.close();
+        } catch (SQLException e) {
+            System.err.println("Connection Fail");
+            e.printStackTrace();
+        }
+        return id;
+    }
+
+    public void addProcess(String processExe) {
+        processExe = wrap(processExe);
+        try {
+            Connection conn = getConnection();
+            Statement stm = conn.createStatement();
+            stm.executeUpdate("INSERT INTO PROCESS (PROCESS_EXE) VALUES (" + processExe + ");");
             conn.close();
         } catch (SQLException e) {
             System.err.println("Connection Fail");
@@ -107,6 +169,10 @@ public class Database {
 
     private String wrap(String str) {
         return "'" + str + "'";
+    }
+
+    private String wrap(int arg) {
+        return "'" + arg + "'";
     }
 
     private static Connection getConnection() throws SQLException {

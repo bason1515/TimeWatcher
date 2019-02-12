@@ -55,6 +55,11 @@ public class Timeline implements Cloneable {
         lastProcessName = currentProcessName;
         currentProcessName = processName;
     }
+    
+    public void addKnownAs(String windowName) {
+        ProcessTimeSegments currentProcess = timeline.get(currentProcessName);
+        currentProcess.addKnowAs(windowName);
+    }
 
     public void displayTimeline() {
         System.out.println(timeline);
