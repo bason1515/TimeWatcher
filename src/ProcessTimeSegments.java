@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class ProcessTimeSegments implements Cloneable{
+public class ProcessTimeSegments implements Cloneable {
     String processName;
     ArrayList<String> knownAs;
     ArrayList<TimeSegment> processTimeline;
@@ -19,7 +19,12 @@ public class ProcessTimeSegments implements Cloneable{
     }
 
     public void addKnowAs(String windowName) {
-        knownAs.add(windowName);
+        if (!knownAs.contains(windowName))
+            knownAs.add(windowName);
+    }
+
+    public void removeTimeSegment(int index) {
+        processTimeline.remove(index);
     }
 
     public TimeSegment getLastInTimeline() {
@@ -80,7 +85,7 @@ public class ProcessTimeSegments implements Cloneable{
         try {
             clonProcess = (ProcessTimeSegments) super.clone();
             ArrayList<TimeSegment> clonProcesTimeline = new ArrayList<>();
-            for(TimeSegment t : processTimeline) {
+            for (TimeSegment t : processTimeline) {
                 clonProcesTimeline.add(t.clone());
             }
             clonProcess.processTimeline = clonProcesTimeline;

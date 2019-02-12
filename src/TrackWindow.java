@@ -22,7 +22,7 @@ public class TrackWindow implements Runnable {
         String windowName = getWindowName();
         int pid = getProcessPid();
         String processName = getProcessExe(pid);
-        timeline = new Timeline(processName);
+        timeline = new Timeline(processName, 0);
         this.ignoreList = ignoreList;
         this.minTimeToIdle = minTimeToIdle;
     }
@@ -51,22 +51,23 @@ public class TrackWindow implements Runnable {
         String windowName = getWindowName();
         int pid = getProcessPid();
         String processName = getProcessExe(pid);
-        // -----------------
-        //System.out.println(windowName + " " + processName + " " + pid);
-        //System.out.println(isChangeProcess(processName) + " " + timeline.getCurrentProcess());
-        // -----------------
-        if(getIdleTimeMillis()/1000 > minTimeToIdle)
+        if (getIdleTimeMillis() / 1000 > minTimeToIdle)
             processName = "Idle";
         if (!isChangeProcess(processName))
             return;
         if (ignoreList.contains(processName))
             return;
         timeline.add(processName);
+        timeline.addKnownAs(windowName);
         timeline.displayTimeline();
     }
 
     private boolean isChangeProcess(String processName) {
-        return !timeline.getCurrentProcess().getProcessName().equals(processName);
+        try {
+            return !timeline.getCurrentProcess().getProcessName().equals(processName);
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     public static int getIdleTimeMillis() {

@@ -1,4 +1,5 @@
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
@@ -17,8 +19,14 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public class App {
     TrackWindow enwin;
@@ -28,6 +36,7 @@ public class App {
     Database db = new Database();
 
     int minTimeToIdle = 15;
+    int minTimeInWindow = 0;
 
     private Timeline applyCustomNames(Timeline timeline) {
         HashMap<String, String> customProcessNames = db.getCustomProcessNames();
@@ -36,7 +45,6 @@ public class App {
         while (iterator.hasNext()) {
             ProcessTimeSegments p = iterator.next();
             if (customProcessNames.containsKey(p.getProcessName())) {
-                System.out.println("if: " + p.getProcessName() + " " + customProcessNames.get(p.getProcessName()));
                 p.setProcessName(customProcessNames.get(p.getProcessName()));
             }
             customProcTimeline.put(p.getProcessName(), p);
@@ -45,14 +53,43 @@ public class App {
         return timeline;
     }
 
+    protected void updateDB() {
+        HashMap<String, String> dbProcess = db.getProcess();
+        Iterator<String> iterator = enwin.getTimeline().getTimeline().keySet().iterator();
+        while (iterator.hasNext()) {
+            String p = iterator.next();
+            if (!dbProcess.containsKey(p))
+                db.addProcess(p);
+            updateDBKnownAs(p);
+        }
+    }
+
+    private void updateDBKnownAs(String p) {
+        ArrayList<String> dbKnownAs = db.getKnownAs(p);
+        Iterator<String> iterator = enwin.timeline.getTimeline().get(p).getKnownAs().iterator();
+        while (iterator.hasNext()) {
+            String name = iterator.next();
+            if (!dbKnownAs.contains(name))
+                db.addKnownAs(p, name);
+        }
+    }
+
     public void updateCBProcess() {
         cBProcess.removeAllItems();
         Iterator<String> iteration = enwin.getTimeline().getTimeline().keySet().iterator();
+        HashMap<String, String> customNames = db.getCustomProcessNames();
         while (iteration.hasNext()) {
-            cBProcess.addItem(iteration.next());
+            String porcessExe = iteration.next();
+            if (customNames.containsKey(porcessExe) && !customNames.get(porcessExe).equals("null"))
+                cBProcess.addItem(porcessExe + " - " + customNames.get(porcessExe));
+            else
+                cBProcess.addItem(porcessExe);
         }
         for (String ignore : db.getIgnoreList()) {
-            cBProcess.addItem(ignore);
+            if (customNames.containsKey(ignore))
+                cBProcess.addItem(ignore + " - " + customNames.get(ignore));
+            else
+                cBProcess.addItem(ignore);
         }
     }
 
@@ -62,15 +99,28 @@ public class App {
         executor.scheduleAtFixedRate(enwin, 0, 100, TimeUnit.MILLISECONDS);
         frame = new JFrame("Time Watcher");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JTextField customNameField = new JTextField();
-        JButton updateData = new JButton("Update Data");
+        JTextField customNameField = new JTextField("Please update date to get processes");
+        JTextField idleTimeField = new JTextField();
+        JTextField windowTimeField = new JTextField();
+        JList<String> namesPropositions = new JList<>();
+        JLabel idleTimeLable = new JLabel("Min time to idle: " + minTimeToIdle + "s");
+        JLabel windowTimeLable = new JLabel("Min time in window: " + minTimeInWindow + "s");
+        JButton updateData = new JButton("Update Data/Generate timeline");
         JButton ignoreButton = new JButton("Ignore");
+        namesPropositions.setVisibleRowCount(1);
+        namesPropositions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane propositionScrollPane = new JScrollPane(namesPropositions);
         cBProcess = new JComboBox<String>();
         cBProcess.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 String item = (String) e.getItem();
-                HashMap<String, String> customNames= db.getCustomProcessNames();
+                item = item.split(" - ")[0];
+                ArrayList<String> propositions = db.getKnownAs(item);
+                namesPropositions.setListData(propositions.toArray(new String[propositions.size()])); // Displaying new
+                                                                                                      // names
+                                                                                                      // proposition
+                HashMap<String, String> customNames = db.getCustomProcessNames();
                 if (db.getIgnoreList().contains(item))
                     ignoreButton.setText("Unignore");
                 else
@@ -78,6 +128,12 @@ public class App {
                 if (customNames.containsKey(item))
                     item = customNames.get(item);
                 customNameField.setText(item);
+            }
+        });
+        namesPropositions.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                customNameField.setText(namesPropositions.getSelectedValue());
             }
         });
         customNameField.addKeyListener(new KeyListener() {
@@ -96,10 +152,58 @@ public class App {
                     return;
                 }
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    String procesExe = (String) cBProcess.getSelectedItem();
-                    db.deleteCustomProcessNames(procesExe);
-                    db.addCustomProcessNames(procesExe, customNameField.getText());
+                    String processExe = (String) cBProcess.getSelectedItem();
+                    processExe = processExe.split(" - ")[0];
+                    db.updateCustomProcessName(processExe, customNameField.getText());
                     customNameField.setText("-SAVED-");
+                }
+            }
+        });
+        idleTimeField.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    try {
+                        minTimeToIdle = Integer.parseInt(idleTimeField.getText());
+                        idleTimeLable.setText("Min time to idle: " + minTimeToIdle + "s");
+                    } catch (NumberFormatException ex) {
+                        idleTimeField.setText("Please enter a number");
+                        return;
+                    }
+                    enwin.setMinTimeToIdle(minTimeToIdle);
+                }
+            }
+        });
+        windowTimeField.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    try {
+                        minTimeInWindow = Integer.parseInt(windowTimeField.getText());
+                        windowTimeLable.setText("Min time in window: " + minTimeInWindow + "s");
+                    } catch (NumberFormatException ex) {
+                        windowTimeField.setText("Please enter a number");
+                        return;
+                    }
+                    enwin.getTimeline().setMinTimeInWindow(minTimeInWindow);
                 }
             }
         });
@@ -120,11 +224,13 @@ public class App {
                 enwin.setIgnoreList(db.getIgnoreList());
             }
         });
+
         updateData.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Timeline copyTimeline = enwin.getTimeline().clone();
                 new TimelineChart("Timeline", applyCustomNames(copyTimeline));
+                updateDB();
                 updateCBProcess();
             }
         });
@@ -135,6 +241,11 @@ public class App {
         gridPanel.add(cBProcess);
         gridPanel.add(customNameField);
         gridPanel.add(ignoreButton);
+        gridPanel.add(propositionScrollPane);
+        gridPanel.add(idleTimeLable);
+        gridPanel.add(idleTimeField);
+        gridPanel.add(windowTimeLable);
+        gridPanel.add(windowTimeField);
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(gridPanel, BorderLayout.NORTH);
         panel.add(updateData, BorderLayout.SOUTH);

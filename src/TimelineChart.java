@@ -1,6 +1,5 @@
 import java.awt.Color;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -44,12 +43,13 @@ public class TimelineChart extends JFrame {
         barRenderer.setDefaultToolTipGenerator(new CategoryToolTipGenerator() {
             int count = 0;
             Task lasttask = null;
+
             @Override
             public String generateToolTip(CategoryDataset dataset, int row, int columne) {
                 TaskSeriesCollection collection = (TaskSeriesCollection) dataset;
                 TaskSeries s = collection.getSeries(0);
                 Task task = s.get(columne);
-                if(!task.equals(lasttask)) {
+                if (!task.equals(lasttask)) {
                     lasttask = task;
                     count = 0;
                 }
@@ -80,10 +80,7 @@ public class TimelineChart extends JFrame {
             ProcessTimeSegments p = iterator.next();
             final Task task = new Task(p.getProcessName(), new Date(p.getProcessTimeline().get(0).getStartTime()),
                     new Date(p.getLastInTimeline().getStopTime()));
-
             addSubTasks(task, p); // Creating full Task with all times
-            // task.setDescription(new Date(p.getProcessTimeline().get(0).getStartTime() + "
-            // " + new Date(p.getLastInTimeline().getStopTime()));
             s1.add(task);
         }
         final TaskSeriesCollection collection = new TaskSeriesCollection();
