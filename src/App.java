@@ -1,4 +1,5 @@
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,8 +20,13 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public class App {
     TrackWindow enwin;
@@ -48,13 +54,12 @@ public class App {
     }
 
     protected void updateDB() {
-        HashMap<String, String> dbProcess = db.getCustomProcessNames();
+        HashMap<String, String> dbProcess = db.getProcess();
         Iterator<String> iterator = enwin.getTimeline().getTimeline().keySet().iterator();
         while (iterator.hasNext()) {
             String p = iterator.next();
-            if (!dbProcess.containsKey(p)) {
+            if (!dbProcess.containsKey(p))
                 db.addProcess(p);
-            }
             updateDBKnownAs(p);
         }
     }
@@ -62,9 +67,9 @@ public class App {
     private void updateDBKnownAs(String p) {
         ArrayList<String> dbKnownAs = db.getKnownAs(p);
         Iterator<String> iterator = enwin.timeline.getTimeline().get(p).getKnownAs().iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             String name = iterator.next();
-            if(!dbKnownAs.contains(name))
+            if (!dbKnownAs.contains(name))
                 db.addKnownAs(p, name);
         }
     }
@@ -97,16 +102,24 @@ public class App {
         JTextField customNameField = new JTextField("Please update date to get processes");
         JTextField idleTimeField = new JTextField();
         JTextField windowTimeField = new JTextField();
+        JList<String> namesPropositions = new JList<>();
         JLabel idleTimeLable = new JLabel("Min time to idle: " + minTimeToIdle + "s");
         JLabel windowTimeLable = new JLabel("Min time in window: " + minTimeInWindow + "s");
         JButton updateData = new JButton("Update Data/Generate timeline");
         JButton ignoreButton = new JButton("Ignore");
+        namesPropositions.setVisibleRowCount(1);
+        namesPropositions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane propositionScrollPane = new JScrollPane(namesPropositions);
         cBProcess = new JComboBox<String>();
         cBProcess.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 String item = (String) e.getItem();
                 item = item.split(" - ")[0];
+                ArrayList<String> propositions = db.getKnownAs(item);
+                namesPropositions.setListData(propositions.toArray(new String[propositions.size()])); // Displaying new
+                                                                                                      // names
+                                                                                                      // proposition
                 HashMap<String, String> customNames = db.getCustomProcessNames();
                 if (db.getIgnoreList().contains(item))
                     ignoreButton.setText("Unignore");
@@ -115,6 +128,12 @@ public class App {
                 if (customNames.containsKey(item))
                     item = customNames.get(item);
                 customNameField.setText(item);
+            }
+        });
+        namesPropositions.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                customNameField.setText(namesPropositions.getSelectedValue());
             }
         });
         customNameField.addKeyListener(new KeyListener() {
@@ -133,9 +152,9 @@ public class App {
                     return;
                 }
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    String procesExe = (String) cBProcess.getSelectedItem();
-                    db.deleteCustomProcessNames(procesExe);
-                    db.addCustomProcessNames(procesExe, customNameField.getText());
+                    String processExe = (String) cBProcess.getSelectedItem();
+                    processExe = processExe.split(" - ")[0];
+                    db.updateCustomProcessName(processExe, customNameField.getText());
                     customNameField.setText("-SAVED-");
                 }
             }
@@ -222,7 +241,7 @@ public class App {
         gridPanel.add(cBProcess);
         gridPanel.add(customNameField);
         gridPanel.add(ignoreButton);
-        gridPanel.add(new JLabel());
+        gridPanel.add(propositionScrollPane);
         gridPanel.add(idleTimeLable);
         gridPanel.add(idleTimeField);
         gridPanel.add(windowTimeLable);
