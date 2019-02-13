@@ -17,6 +17,40 @@ public class Database {
         // TODO
     }
 
+    public void setInitData(int minIdleTime, int minWindowTime) {
+        String minIdle = wrap(minIdleTime);
+        String minWindow = wrap(minWindowTime);
+        try {
+            Connection conn = getConnection();
+            Statement stm = conn.createStatement();
+            stm.executeUpdate("DELETE FROM INIT_DATA;");
+            stm.executeUpdate(
+                    "INSERT INTO INIT_DATA (MIN_IDLE, MIN_WINDOW) VALUES (" + minIdle + ", " + minWindow + ");");
+            conn.close();
+        } catch (SQLException e) {
+            System.err.println("Connection Fail");
+            e.printStackTrace();
+        }
+    }
+
+    public int[] getInitData() {
+        int[] init = new int[2];
+        try {
+            Connection conn = getConnection();
+            Statement stm = conn.createStatement();
+            ResultSet res = stm.executeQuery("SELECT * FROM INIT_DATA;");
+            while (res.next()) {
+                init[0] = res.getInt("MIN_IDLE");
+                init[1] = res.getInt("MIN_WINDOW");
+            }
+            conn.close();
+        } catch (SQLException e) {
+            System.err.println("Connection Fail");
+            e.printStackTrace();
+        }
+        return init;
+    }
+
     public HashMap<String, String> getCustomProcessNames() {
         HashMap<String, String> customProcessNames = new HashMap<>();
         try {

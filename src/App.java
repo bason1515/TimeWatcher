@@ -93,7 +93,14 @@ public class App {
         }
     }
 
+    private void loadInitData() {
+        int[] init = db.getInitData();
+        minTimeToIdle = init[0];
+        minTimeInWindow = init[1];
+    }
+
     public void start() {
+        loadInitData();
         enwin = new TrackWindow(db.getIgnoreList(), minTimeToIdle);
         executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(enwin, 0, 100, TimeUnit.MILLISECONDS);
@@ -180,6 +187,7 @@ public class App {
                         return;
                     }
                     enwin.setMinTimeToIdle(minTimeToIdle);
+                    db.setInitData(minTimeToIdle, minTimeInWindow);
                 }
             }
         });
@@ -204,6 +212,7 @@ public class App {
                         return;
                     }
                     enwin.getTimeline().setMinTimeInWindow(minTimeInWindow);
+                    db.setInitData(minTimeToIdle, minTimeInWindow);
                 }
             }
         });
