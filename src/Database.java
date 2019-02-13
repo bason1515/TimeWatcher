@@ -115,6 +115,8 @@ public class Database {
     public ArrayList<String> getKnownAs(String processExe) {
         String id = wrap(getIdOfProcess(processExe));
         ArrayList<String> names = new ArrayList<>();
+        if (id.equals("'null'"))
+            return names;
         try {
             Connection conn = getConnection();
             Statement stm = conn.createStatement();
